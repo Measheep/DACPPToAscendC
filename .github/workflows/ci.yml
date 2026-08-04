@@ -15,13 +15,15 @@ jobs:
   translator:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
-    env:
-      BUILD_DIR: ${{ runner.temp }}/dacpp-build
+    
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Select external build directory
+        run: echo "BUILD_DIR=${RUNNER_TEMP}/dacpp-build" >> "${GITHUB_ENV}"
+      
       - name: Install build dependencies
         run: |
           sudo apt-get update
