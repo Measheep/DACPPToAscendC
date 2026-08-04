@@ -1,0 +1,62 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=1 vectorRoutes=1 cubeRoutes=0
+  runtimeFeatureMask=71
+  runtime_names route=Vector session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  pools: hostInputs=1 tensorBuffers=3 scalarBindings=0 kernelLaunches=1 hostOutputs=2 cleanups=0 diagnostics=0 hostLoops=1 hostBranches=0 helpers=0 edges=0 aliases=0 dacForNests=0 generatedBlocks=8 rawStmts=0
+  steps (16):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=vector.route.setup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  HostInput  name=input_size type=const int storage=- const=1 constexpr=1 global=0 arrayExtent=- init=4096 loc=3pt.dac.cpp:30:5
+    step#2  TensorBuffer  name=u_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=3pt.dac.cpp:31:5
+    step#3  HostLoop  kind=For induct=i init=[decl int i=0] upper=i < input_size step=++i cond= kernelInside=0 bodySteps=1
+    step#4  HostOutput  kind=VectorElemWrite target=u_data[i] value=static_cast<float>(i)
+    step#5  TensorBuffer  name=out_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=3pt.dac.cpp:35:5
+    step#6  TensorBuffer  name=r_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=3pt.dac.cpp:36:5
+    step#7  GeneratedCodeBlock  role=CommonDecl label=decl expr=0 route=Vector code=    {
+    //  算子 vector_kernel_0 基础参数与数据定义 
+        uint32_t blockDim0 = 8;
+        dacpp_host::HostBuffer<float> u_kinBuf(app, u_data.siz...
+    step#8  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=0 route=Vector code=    //  算子 vector_kernel_0 NPU 执行流 
+    #ifndef ASCENDC_CPU_DEBUG
+        dev.allocate(u_kinBuf);
+        dev.allocate(u_koutBuf);
+        dev.allocat...
+    step#9  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyIn(u_kinBuf);
+        dev.copyIn(rBuf);
+    #else
+        memcpy(cpuGm_u_kin, u_kinBuf.data.data(), u_kinBuf.bytes...
+    step#10  GeneratedCodeBlock  role=KernelLaunch label=launch expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.launch(vector_kernel_0_do(blockDim0, stream, u_kinBuf.device, u_koutBuf.device, rBuf.device, kernelLength0, blockDim0,...
+    step#11  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyOut(u_koutBuf);
+        const size_t u_koutOffset = static_cast<size_t>(0);
+        std::memcpy(out_data.data() + ...
+    step#12  GeneratedCodeBlock  role=DeviceFree label=free expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.release(u_kinBuf);
+        dev.release(u_koutBuf);
+        dev.release(rBuf);
+    #else
+        AscendC::GmFree((void ...
+    step#13  KernelLaunch  expr=0 route=Vector kernel=vector_kernel_0_do file=kernel0.cpp params=[u_kinBuf.device, u_koutBuf.device, rBuf.device, kernelLength0, blockDim0, tileLength0, tileCount0] scalars=[r] blockDim=blockDim0 tiling=- multicard=0 commonDecls=[#7] alloc=[#8] copyIn=[#9] copyOut=[#11] free=[#12] postLaunch=[]
+            buffer#0 name=u_kin access=read dist=sharded halo=[0,2] resident=0 count=u_kinBuf.logicalElems bytes=u_kinBuf.bytes()
+            buffer#1 name=u_kout access=write dist=sharded halo=[0,0] resident=0 count=u_koutBuf.logicalElems bytes=u_koutBuf.bytes()
+            buffer#2 name=r access=read dist=sharded halo=[0,0] resident=0 count=rBuf.logicalElems bytes=rBuf.bytes()
+    step#14  HostOutput  kind=TensorPrint target=out_tensor value= gen=    {
+        std::cout << "{";
+        for (long long dacppPrintI0_0 = 0; dacppPrintI0_0 < static_cast<long long>(out_d...
+    step#15  GeneratedCodeBlock  role=AclRuntimeFinalize label=vector.route.cleanup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+

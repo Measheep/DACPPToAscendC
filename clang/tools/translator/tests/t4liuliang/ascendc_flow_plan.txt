@@ -1,0 +1,64 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=1 vectorRoutes=1 cubeRoutes=0
+  runtimeFeatureMask=7
+  runtime_names route=Vector session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  pools: hostInputs=0 tensorBuffers=2 scalarBindings=0 kernelLaunches=1 hostOutputs=3 cleanups=0 diagnostics=0 hostLoops=2 hostBranches=0 helpers=1 edges=0 aliases=0 dacForNests=0 generatedBlocks=8 rawStmts=0
+  steps (17):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=vector.route.setup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  TensorBuffer  name=rho container=std::vector origin=StdVectorCtor elem=float shape=[] loc=liuliang.dac.cpp:57:5
+    step#2  TensorBuffer  name=new_rho container=std::vector origin=StdVectorCtor elem=float shape=[] loc=liuliang.dac.cpp:58:5
+    step#3  HelperInvocation  name=initializeDensity role=InitOnly args=[rho] returns=0 target=-
+    step#4  HostLoop  kind=For induct=t init=[decl int t=0] upper=t < TIME_STEPS step=++t cond= kernelInside=1 bodySteps=3
+    step#5  GeneratedCodeBlock  role=CommonDecl label=decl expr=0 route=Vector code=    {
+    //  算子 vector_kernel_0 基础参数与数据定义 
+        uint32_t blockDim0 = 8;
+        dacpp_host::HostBuffer<float> rhoBuf(app, rho.size(), ...
+    step#6  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=0 route=Vector code=    //  算子 vector_kernel_0 NPU 执行流 
+    #ifndef ASCENDC_CPU_DEBUG
+        dev.allocate(rhoBuf);
+        dev.allocate(new_rhoBuf);
+    #else
+        ui...
+    step#7  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyIn(rhoBuf);
+    #else
+        memcpy(cpuGm_rho, rhoBuf.data.data(), rhoBuf.bytes());
+    #endif
+
+    step#8  GeneratedCodeBlock  role=KernelLaunch label=launch expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.launch(vector_kernel_0_do(blockDim0, stream, rhoBuf.device, new_rhoBuf.device, kernelLength0, blockDim0, tileLength0, ...
+    step#9  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyOut(new_rhoBuf);
+        const size_t new_rhoOffset = static_cast<size_t>(1);
+        std::memcpy(new_rho.data() +...
+    step#10  GeneratedCodeBlock  role=DeviceFree label=free expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.release(rhoBuf);
+        dev.release(new_rhoBuf);
+    #else
+        AscendC::GmFree((void *)cpuGm_rho);
+        Ascend...
+    step#11  KernelLaunch  expr=0 route=Vector kernel=vector_kernel_0_do file=kernel0.cpp params=[rhoBuf.device, new_rhoBuf.device, kernelLength0, blockDim0, tileLength0, tileCount0] scalars=[] blockDim=blockDim0 tiling=- multicard=0 commonDecls=[#5] alloc=[#6] copyIn=[#7] copyOut=[#9] free=[#10] postLaunch=[]
+            buffer#0 name=rho access=read dist=sharded halo=[0,1] resident=0 count=rhoBuf.logicalElems bytes=rhoBuf.bytes()
+            buffer#1 name=new_rho access=write dist=sharded halo=[0,0] resident=0 count=new_rhoBuf.logicalElems bytes=new_rhoBuf.bytes()
+    step#12  HostLoop  kind=For induct=i init=[decl int i=1] upper=i <= WIDTH-2 step=i++ cond= kernelInside=0 bodySteps=1
+    step#13  HostOutput  kind=TensorAssign target=middle_in_tensor[i] value=middle_out_tensor[i-1] gen=(rho.data())[static_cast<long long>(i)] = (new_rho.data())[static_cast<long long>((1) + (i-1))];
+
+    step#14  HostOutput  kind=TensorAssign target=middle_in_tensor[0] value=middle_out_tensor[0] gen=(rho.data())[static_cast<long long>(0)] = (new_rho.data())[static_cast<long long>(1)];
+
+    step#15  HostOutput  kind=StdOutStream target= value= stream=std::cout ops=[(rho.data())[static_cast<long long>(15)], std::endl]
+    step#16  GeneratedCodeBlock  role=AclRuntimeFinalize label=vector.route.cleanup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+

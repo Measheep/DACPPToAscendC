@@ -1,0 +1,56 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=1 vectorRoutes=0 cubeRoutes=1
+  runtimeFeatureMask=228
+  runtime_names route=Cube session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  generated_name text=makeTiling kind=framework expr=0
+  generated_name text=makeShapeTiling kind=framework expr=0
+  pools: hostInputs=0 tensorBuffers=2 scalarBindings=0 kernelLaunches=1 hostOutputs=1 cleanups=0 diagnostics=0 hostLoops=0 hostBranches=0 helpers=0 edges=0 aliases=0 dacForNests=0 generatedBlocks=8 rawStmts=0
+  steps (12):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=cube.route.setup expr=-1 route=Cube code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  TensorBuffer  name=dataA container=std::vector origin=StdVectorCtor elem=float shape=[] loc=matMul.dac.cpp:29:5
+    step#2  TensorBuffer  name=dataB container=std::vector origin=StdVectorCtor elem=float shape=[] loc=matMul.dac.cpp:32:5
+    step#3  GeneratedCodeBlock  role=CommonDecl label=decl expr=0 route=Cube code=    {
+    //  算子 cube_kernel_0 基础参数与数据定义（plan + runtime binding）
+        const char *socVersion = SOC_VERSION;
+        auto ascendcPla...
+    step#4  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=0 route=Cube code=        //  算子 cube_kernel_0 NPU 执行流
+        std::vector<float> matCInitSnapshot(cElemCount, 0.0f);
+        for (size_t i = 0; i < cElemCount; ++i) {
+...
+    step#5  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=0 route=Cube code=        std::memcpy(matAHost, matAData, aFileSize);
+        dev.copyIn(matADevice, aFileSize, matAHost, aFileSize);
+        std::memcpy(matBHost, matBData, bFil...
+    step#6  GeneratedCodeBlock  role=KernelLaunch label=launch expr=0 route=Cube code=        dev.launch(ACLRT_LAUNCH_KERNEL(cube_kernel_0)(blockDim0, stream, matADevice, matBDevice, matCDevice, workspaceDevice, tilingDevice));
+        dev.sync()...
+    step#7  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=0 route=Cube code=        dev.copyOut(matCHost, cFileSize, matCDevice, cFileSize);
+        std::memcpy(matCData, matCHost, cFileSize);
+        for (size_t i = 0; i < cElemCount; ...
+    step#8  GeneratedCodeBlock  role=DeviceFree label=free expr=0 route=Cube code=        dev.release(matAHost, matADevice);
+        dev.release(matBHost, matBDevice);
+        dev.release(matCHost, matCDevice);
+        dev.release(workspaceDe...
+    step#9  KernelLaunch  expr=0 route=Cube kernel=cube_kernel_0 file=kernel0.cpp params=[matA, matB, matC] scalars=[] blockDim=blockDim0 tiling=makeTiling multicard=0 commonDecls=[#3] alloc=[#4] copyIn=[#5] copyOut=[#7] free=[#8] postLaunch=[#10]
+            buffer#0 name=matA access=read dist=sharded halo=[0,0] resident=0 count=aElemCount bytes=aFileSize
+            buffer#1 name=matB access=read dist=replicated halo=[0,0] resident=0 count=bElemCount bytes=bFileSize
+            buffer#2 name=matC access=read-write dist=sharded halo=[0,0] resident=0 count=cElemCount bytes=cFileSize
+            buffer#3 name=tiling access=read dist=replicated halo=[0,0] resident=0 count=tilingFileSize bytes=tilingFileSize
+            buffer#4 name=workspace access=write dist=sharded halo=[0,0] resident=0 count=workspaceSize bytes=workspaceSize
+    step#10  HostOutput  kind=TensorPrint target=matC value= gen=    {
+        std::cout << "{";
+        for (long long dacppPrintI0_0 = 0; dacppPrintI0_0 < static_cast<long long>(mElem...
+    step#11  GeneratedCodeBlock  role=AclRuntimeFinalize label=cube.route.cleanup expr=-1 route=Cube code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+

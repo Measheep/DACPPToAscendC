@@ -1,0 +1,66 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=1 vectorRoutes=1 cubeRoutes=0
+  runtimeFeatureMask=71
+  runtime_names route=Vector session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  pools: hostInputs=0 tensorBuffers=4 scalarBindings=0 kernelLaunches=1 hostOutputs=3 cleanups=0 diagnostics=0 hostLoops=2 hostBranches=0 helpers=0 edges=0 aliases=0 dacForNests=0 generatedBlocks=8 rawStmts=0
+  steps (18):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=vector.route.setup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  TensorBuffer  name=input_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=linear.dac.cpp:35:5
+    step#2  HostLoop  kind=For induct=i init=[decl int i=0] upper=i < IN_FEATURES step=++i cond= kernelInside=0 bodySteps=1
+    step#3  HostOutput  kind=VectorElemWrite target=input_data[i] value=static_cast<float>(i) * 0.01f
+    step#4  TensorBuffer  name=weight_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=linear.dac.cpp:40:5
+    step#5  HostLoop  kind=For induct=idx init=[decl int idx=0] upper=idx < OUT_FEATURES * IN_FEATURES step=++idx cond= kernelInside=0 bodySteps=1
+    step#6  HostOutput  kind=VectorElemWrite target=weight_data[idx] value=static_cast<float>(idx % IN_FEATURES) * 0.001f
+    step#7  TensorBuffer  name=bias_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=linear.dac.cpp:45:5
+    step#8  TensorBuffer  name=output_data container=std::vector origin=StdVectorCtor elem=float shape=[] loc=linear.dac.cpp:46:5
+    step#9  GeneratedCodeBlock  role=CommonDecl label=decl expr=0 route=Vector code=    {
+    //  算子 vector_kernel_0 基础参数与数据定义 
+        uint32_t blockDim0 = 8;
+        dacpp_host::HostBuffer<float> inputBuf(app, static_cas...
+    step#10  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=0 route=Vector code=    //  算子 vector_kernel_0 NPU 执行流 
+    #ifndef ASCENDC_CPU_DEBUG
+        dev.allocate(inputBuf);
+        dev.allocate(weightBuf);
+        dev.allocat...
+    step#11  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyIn(inputBuf);
+        dev.copyIn(weightBuf);
+        dev.copyIn(biasBuf);
+    #else
+        memcpy(cpuGm_input, in...
+    step#12  GeneratedCodeBlock  role=KernelLaunch label=launch expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.launch(vector_kernel_0_do(blockDim0, stream, inputBuf.device, weightBuf.device, biasBuf.device, outputBuf.device, kern...
+    step#13  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyOut(outputBuf);
+        const size_t outputOffset = static_cast<size_t>(0);
+        std::memcpy(output_data.data()...
+    step#14  GeneratedCodeBlock  role=DeviceFree label=free expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.release(inputBuf);
+        dev.release(weightBuf);
+        dev.release(biasBuf);
+        dev.release(outputBuf);
+    #...
+    step#15  KernelLaunch  expr=0 route=Vector kernel=vector_kernel_0_do file=kernel0.cpp params=[inputBuf.device, weightBuf.device, biasBuf.device, outputBuf.device, kernelLength0, blockDim0, tileLength0, tileCount0] scalars=[input] blockDim=blockDim0 tiling=- multicard=0 commonDecls=[#9] alloc=[#10] copyIn=[#11] copyOut=[#13] free=[#14] postLaunch=[]
+            buffer#0 name=input access=read dist=sharded halo=[0,0] resident=0 count=inputBuf.logicalElems bytes=inputBuf.bytes()
+            buffer#1 name=weight access=read dist=sharded halo=[0,0] resident=0 count=weightBuf.logicalElems bytes=weightBuf.bytes()
+            buffer#2 name=bias access=read dist=sharded halo=[0,0] resident=0 count=biasBuf.logicalElems bytes=biasBuf.bytes()
+            buffer#3 name=output access=write dist=sharded halo=[0,0] resident=0 count=outputBuf.logicalElems bytes=outputBuf.bytes()
+    step#16  HostOutput  kind=TensorPrint target=output_tensor value= gen=    {
+        std::cout << "{";
+        for (long long dacppPrintI0_0 = 0; dacppPrintI0_0 < static_cast<long long>(outpu...
+    step#17  GeneratedCodeBlock  role=AclRuntimeFinalize label=vector.route.cleanup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+

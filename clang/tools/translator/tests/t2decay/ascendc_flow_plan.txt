@@ -1,0 +1,51 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=1 vectorRoutes=1 cubeRoutes=0
+  runtimeFeatureMask=71
+  runtime_names route=Vector session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  pools: hostInputs=1 tensorBuffers=5 scalarBindings=0 kernelLaunches=1 hostOutputs=2 cleanups=0 diagnostics=0 hostLoops=1 hostBranches=0 helpers=1 edges=0 aliases=0 dacForNests=0 generatedBlocks=5 rawStmts=0
+  steps (16):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=vector.route.setup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  TensorBuffer  name=lambdas container=std::vector origin=StdVectorCtor elem=float shape=[] loc=decay.dac.cpp:59:5
+    step#2  TensorBuffer  name=N0s container=std::vector origin=StdVectorCtor elem=float shape=[] loc=decay.dac.cpp:60:5
+    step#3  HostLoop  kind=For induct=i init=[decl size_t i=0] upper=i < numIsotopes step=++i cond= kernelInside=0 bodySteps=1
+    step#4  HostOutput  kind=VectorElemWrite target=lambdas[i] value=0.01f + 0.0001f * static_cast<float>(i % 1024)
+    step#5  HostInput  name=numIsotopes type=size_t storage=- const=0 constexpr=0 global=0 arrayExtent=- init=lambdas.size() loc=decay.dac.cpp:32:5
+    step#6  TensorBuffer  name=A container=std::vector origin=StdVectorCtor elem=float shape=[] loc=decay.dac.cpp:33:5
+    step#7  TensorBuffer  name=t container=std::vector origin=StdVectorCtor elem=float shape=[] loc=decay.dac.cpp:35:5
+    step#8  HelperInvocation  name=t.push_back role=Unknown args=[static_cast<float>(0)] returns=0 target=-
+    step#9  TensorBuffer  name=local_A container=std::vector origin=StdVectorCtor elem=float shape=[] loc=decay.dac.cpp:39:5
+    step#10  GeneratedCodeBlock  role=CommonDecl label=decl.pointwise expr=0 route=Vector code=    {
+    //  算子 vector_kernel_0 基础参数与数据定义 
+        uint32_t blockDim0 = 8;
+        dacpp_host::HostBuffer<float> N0sBuf(app, N0s.size(), ...
+    step#11  GeneratedCodeBlock  role=TemporalLoopBody label=schedule.pointwise expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+    //  算子 vector_kernel_0 NPU 执行流 
+        dev.allocate(N0sBuf);
+        dev.allocate(lambdasBuf);
+        dev.allocate...
+    step#12  GeneratedCodeBlock  role=DeviceFree label=free.pointwise expr=0 route=Vector code=    }
+
+    step#13  KernelLaunch  expr=0 route=Vector kernel=vector_kernel_0_do file=kernel0.cpp params=[N0sBuf.device, lambdasBuf.device, local_ABuf.device, tBuf.device, kernelLength0, blockDim0, tileLength0, tileCount0] scalars=[t] blockDim=blockDim0 tiling=- multicard=0 commonDecls=[#10] alloc=[] copyIn=[] copyOut=[] free=[#12] postLaunch=[]
+            buffer#0 name=N0s access=read dist=sharded halo=[0,0] resident=0 count=N0sBuf.logicalElems bytes=N0sBuf.bytes()
+            buffer#1 name=lambdas access=read dist=sharded halo=[0,0] resident=0 count=lambdasBuf.logicalElems bytes=lambdasBuf.bytes()
+            buffer#2 name=local_A access=write dist=sharded halo=[0,0] resident=0 count=local_ABuf.logicalElems bytes=local_ABuf.bytes()
+            buffer#3 name=t access=read dist=sharded halo=[0,0] resident=0 count=tBuf.logicalElems bytes=tBuf.bytes()
+    step#14  HostOutput  kind=TensorPrint target=A_tensor[1] value= gen=    {
+        std::cout << "{";
+        for (long long dacppPrintI0_0 = 0; dacppPrintI0_0 < static_cast<long long>(stati...
+    step#15  GeneratedCodeBlock  role=AclRuntimeFinalize label=vector.route.cleanup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+

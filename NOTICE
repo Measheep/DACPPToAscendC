@@ -1,0 +1,15 @@
+DACPPToAscendC
+
+This product includes software developed by the LLVM Project and is
+distributed under the Apache License 2.0 with LLVM Exceptions.
+
+This product is derived in part from DACPP-OpenSource by XJTU-HPC, distributed
+under the Apache License 2.0 with LLVM Exceptions.
+
+This product includes modified and unmodified material from Ascend Samples:
+Copyright 2019-2020 Huawei Technologies Co., Ltd. Ascend Samples is distributed
+under the Apache License 2.0.
+
+See LICENSE.TXT, UPSTREAM.md, THIRD_PARTY_NOTICES.md, and retained per-file
+notices for complete attribution and license information.
+

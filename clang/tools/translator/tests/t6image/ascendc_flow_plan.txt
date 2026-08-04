@@ -1,0 +1,102 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=2 vectorRoutes=2 cubeRoutes=0
+  runtimeFeatureMask=71
+  runtime_names route=Vector session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  pools: hostInputs=2 tensorBuffers=3 scalarBindings=0 kernelLaunches=2 hostOutputs=4 cleanups=0 diagnostics=0 hostLoops=0 hostBranches=0 helpers=0 edges=0 aliases=0 dacForNests=0 generatedBlocks=14 rawStmts=0
+  steps (25):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=vector.route.setup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  HostInput  name=width type=const int storage=- const=1 constexpr=0 global=0 arrayExtent=- init=1920 loc=ilarge.dac.cpp:59:5
+    step#2  HostInput  name=height type=const int storage=- const=1 constexpr=0 global=0 arrayExtent=- init=1080 * 8 loc=ilarge.dac.cpp:60:5
+    step#3  TensorBuffer  name=image container=std::vector origin=StdVectorCtor elem=struct Pixel shape=[] loc=ilarge.dac.cpp:61:5
+    step#4  TensorBuffer  name=image2 container=std::vector origin=StdVectorCtor elem=struct Pixel shape=[] loc=ilarge.dac.cpp:62:5
+    step#5  HostOutput  kind=StdOutStream target= value= stream=std::cout ops=["Original Image:", std::endl]
+    step#6  GeneratedCodeBlock  role=CommonDecl label=decl expr=0 route=Vector code=    {
+    //  算子 vector_kernel_0 基础参数与数据定义 
+        uint32_t blockDim0 = 8;
+        dacpp_host::HostBuffer<int32_t> imageRBuf(app, image.s...
+    step#7  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=0 route=Vector code=    //  算子 vector_kernel_0 NPU 执行流 
+    #ifndef ASCENDC_CPU_DEBUG
+        dev.allocate(imageRBuf);
+        dev.allocate(imageGBuf);
+        dev.alloca...
+    step#8  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyIn(imageRBuf);
+        dev.copyIn(imageGBuf);
+        dev.copyIn(imageBBuf);
+    #else
+        memcpy(cpuGm_imageR...
+    step#9  GeneratedCodeBlock  role=KernelLaunch label=launch expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.launch(vector_kernel_0_do(blockDim0, stream, imageRBuf.device, imageGBuf.device, imageBBuf.device, image2RBuf.device, ...
+    step#10  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyOut(image2RBuf);
+        for (size_t i = 0; i < image2RBuf.logicalElems; ++i) {
+            auto &elem = image2[i]...
+    step#11  GeneratedCodeBlock  role=DeviceFree label=free expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.release(imageRBuf);
+        dev.release(imageGBuf);
+        dev.release(imageBBuf);
+        dev.release(image2RBuf);
+ ...
+    step#12  KernelLaunch  expr=0 route=Vector kernel=vector_kernel_0_do file=kernel0.cpp params=[imageRBuf.device, imageGBuf.device, imageBBuf.device, image2RBuf.device, image2GBuf.device, image2BBuf.device, kernelLength0, blockDim0, tileLength0, tileCount0] scalars=[] blockDim=blockDim0 tiling=- multicard=0 commonDecls=[#6] alloc=[#7] copyIn=[#8] copyOut=[#10] free=[#11] postLaunch=[]
+            buffer#0 name=imageR access=read dist=sharded halo=[0,0] resident=0 count=imageRBuf.logicalElems bytes=imageRBuf.bytes()
+            buffer#1 name=imageG access=read dist=sharded halo=[0,0] resident=0 count=imageGBuf.logicalElems bytes=imageGBuf.bytes()
+            buffer#2 name=imageB access=read dist=sharded halo=[0,0] resident=0 count=imageBBuf.logicalElems bytes=imageBBuf.bytes()
+            buffer#3 name=image2R access=write dist=sharded halo=[0,0] resident=0 count=image2RBuf.logicalElems bytes=image2RBuf.bytes()
+            buffer#4 name=image2G access=write dist=sharded halo=[0,0] resident=0 count=image2GBuf.logicalElems bytes=image2GBuf.bytes()
+            buffer#5 name=image2B access=write dist=sharded halo=[0,0] resident=0 count=image2BBuf.logicalElems bytes=image2BBuf.bytes()
+    step#13  HostOutput  kind=StdOutStream target= value= stream=std::cout ops=["\nImage After Color Adjustment:", std::endl]
+    step#14  TensorBuffer  name=image3 container=std::vector origin=StdVectorCtor elem=struct Pixel shape=[] loc=ilarge.dac.cpp:76:5
+    step#15  GeneratedCodeBlock  role=CommonDecl label=decl expr=1 route=Vector code=    {
+    //  算子 vector_kernel_1 基础参数与数据定义 
+        uint32_t blockDim1 = 8;
+        dacpp_host::HostBuffer<int32_t> imageRBuf(app, image2....
+    step#16  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=1 route=Vector code=    //  算子 vector_kernel_1 NPU 执行流 
+    #ifndef ASCENDC_CPU_DEBUG
+        dev.allocate(imageRBuf);
+        dev.allocate(imageGBuf);
+        dev.alloca...
+    step#17  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=1 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyIn(imageRBuf);
+        dev.copyIn(imageGBuf);
+        dev.copyIn(imageBBuf);
+    #else
+        memcpy(cpuGm_imageR...
+    step#18  GeneratedCodeBlock  role=KernelLaunch label=launch expr=1 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.launch(vector_kernel_1_do(blockDim1, stream, imageRBuf.device, imageGBuf.device, imageBBuf.device, image2RBuf.device, ...
+    step#19  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=1 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyOut(image2RBuf);
+        for (size_t i = 0; i < image2RBuf.logicalElems; ++i) {
+            auto &elem = image3[i]...
+    step#20  GeneratedCodeBlock  role=DeviceFree label=free expr=1 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.release(imageRBuf);
+        dev.release(imageGBuf);
+        dev.release(imageBBuf);
+        dev.release(image2RBuf);
+ ...
+    step#21  KernelLaunch  expr=1 route=Vector kernel=vector_kernel_1_do file=kernel1.cpp params=[imageRBuf.device, imageGBuf.device, imageBBuf.device, image2RBuf.device, image2GBuf.device, image2BBuf.device, kernelLength1, blockDim1, tileLength1, tileCount1] scalars=[] blockDim=blockDim1 tiling=- multicard=0 commonDecls=[#15] alloc=[#16] copyIn=[#17] copyOut=[#19] free=[#20] postLaunch=[]
+            buffer#3 name=imageR access=read dist=sharded halo=[0,0] resident=1 count=imageRBuf.logicalElems bytes=imageRBuf.bytes()
+            buffer#4 name=imageG access=read dist=sharded halo=[0,0] resident=1 count=imageGBuf.logicalElems bytes=imageGBuf.bytes()
+            buffer#5 name=imageB access=read dist=sharded halo=[0,0] resident=1 count=imageBBuf.logicalElems bytes=imageBBuf.bytes()
+            buffer#6 name=image2R access=write dist=sharded halo=[0,0] resident=0 count=image2RBuf.logicalElems bytes=image2RBuf.bytes()
+            buffer#7 name=image2G access=write dist=sharded halo=[0,0] resident=0 count=image2GBuf.logicalElems bytes=image2GBuf.bytes()
+            buffer#8 name=image2B access=write dist=sharded halo=[0,0] resident=0 count=image2BBuf.logicalElems bytes=image2BBuf.bytes()
+    step#22  HostOutput  kind=StdOutStream target= value= stream=std::cout ops=["\nImage After Brightness Enhancement:", std::endl]
+    step#23  HostOutput  kind=TensorPrint target=image_tensor3 value= gen=    {
+        std::cout << "{";
+        for (long long dacppPrintI0_0 = 0; dacppPrintI0_0 < static_cast<long long>(heigh...
+    step#24  GeneratedCodeBlock  role=AclRuntimeFinalize label=vector.route.cleanup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+

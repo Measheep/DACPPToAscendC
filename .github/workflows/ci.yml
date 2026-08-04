@@ -1,0 +1,62 @@
+name: DACPP CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dacpp-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  translator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      BUILD_DIR: ${{ runner.temp }}/dacpp-build
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            cmake ninja-build g++ python3 ripgrep zlib1g-dev libzstd-dev
+
+      - name: Check release hygiene
+        run: bash clang/tools/translator/tools/release_audit.sh
+
+      - name: Configure LLVM, Clang, MLIR, and translator
+        run: |
+          cmake -S llvm -B "$BUILD_DIR" -G Ninja \
+            -DLLVM_ENABLE_PROJECTS="clang;mlir" \
+            -DLLVM_TARGETS_TO_BUILD="host" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTING=ON
+
+      - name: Build translator and unit tests
+        run: |
+          cmake --build "$BUILD_DIR" \
+            --target translator vector_tiling_test \
+                     host_runtime_emitter_test ascendc_flow_plan_test \
+            --parallel 2
+
+      - name: Run CTest
+        run: |
+          ctest --test-dir \
+            "$BUILD_DIR/tools/clang/tools/translator" \
+            --output-on-failure
+
+      - name: Check generated baselines
+        run: bash clang/tools/translator/tools/atest_diff.sh
+
+      - name: Check Vector tiling
+        run: bash clang/tools/translator/tools/test_vector_tiling.sh
+
+      - name: Check HostFlow architecture
+        run: bash clang/tools/translator/tools/atest_hostflow_arch_gate.sh

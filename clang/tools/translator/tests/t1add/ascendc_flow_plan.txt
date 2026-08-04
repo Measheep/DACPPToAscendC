@@ -1,0 +1,59 @@
+AscendCFlowPlan dump
+  source=<unset>
+  builderRan=1 partial=0
+  expressions=1 vectorRoutes=1 cubeRoutes=0
+  runtimeFeatureMask=71
+  runtime_names route=Vector session=app rank=rankCount routeObject=route device=dev stream=stream
+  generated_name text=app kind=framework expr=-1
+  generated_name text=rankCount kind=framework expr=-1
+  generated_name text=route kind=framework expr=-1
+  generated_name text=dev kind=framework expr=-1
+  generated_name text=stream kind=framework expr=-1
+  pools: hostInputs=0 tensorBuffers=3 scalarBindings=0 kernelLaunches=1 hostOutputs=1 cleanups=0 diagnostics=0 hostLoops=0 hostBranches=0 helpers=0 edges=0 aliases=0 dacForNests=0 generatedBlocks=8 rawStmts=0
+  steps (13):
+    step#0  GeneratedCodeBlock  role=AclRuntimeInit label=vector.route.setup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dacpp_host::Device dev(app, 0);
+    if (!dev.ok()) return app.finish();
+    aclrtStream stream = dev.stream();
+#endif
+
+    step#1  TensorBuffer  name=vecA container=std::vector origin=StdVectorCtor elem=int shape=[] loc=add.dac.cpp:15:5
+    step#2  TensorBuffer  name=vecB container=std::vector origin=StdVectorCtor elem=int shape=[] loc=add.dac.cpp:16:5
+    step#3  TensorBuffer  name=vecC container=std::vector origin=StdVectorCtor elem=int shape=[] loc=add.dac.cpp:17:5
+    step#4  GeneratedCodeBlock  role=CommonDecl label=decl expr=0 route=Vector code=    {
+    //  算子 vector_kernel_0 基础参数与数据定义 
+        uint32_t blockDim0 = 8;
+        dacpp_host::HostBuffer<int32_t> vecABuf(app, vecA.size...
+    step#5  GeneratedCodeBlock  role=DeviceAlloc label=alloc expr=0 route=Vector code=    //  算子 vector_kernel_0 NPU 执行流 
+    #ifndef ASCENDC_CPU_DEBUG
+        dev.allocate(vecABuf);
+        dev.allocate(vecBBuf);
+        dev.allocate(v...
+    step#6  GeneratedCodeBlock  role=HostToDeviceCopy label=h2d expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyIn(vecABuf);
+        dev.copyIn(vecBBuf);
+    #else
+        memcpy(cpuGm_vecA, vecABuf.data.data(), vecABuf.bytes(...
+    step#7  GeneratedCodeBlock  role=KernelLaunch label=launch expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.launch(vector_kernel_0_do(blockDim0, stream, vecABuf.device, vecBBuf.device, vecCBuf.device, kernelLength0, blockDim0,...
+    step#8  GeneratedCodeBlock  role=DeviceToHostCopy label=d2h expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.copyOut(vecCBuf);
+        const size_t vecCOffset = static_cast<size_t>(0);
+        std::memcpy(vecC.data() + vecCOffs...
+    step#9  GeneratedCodeBlock  role=DeviceFree label=free expr=0 route=Vector code=    #ifndef ASCENDC_CPU_DEBUG
+        dev.release(vecABuf);
+        dev.release(vecBBuf);
+        dev.release(vecCBuf);
+    #else
+        AscendC::GmFree((void ...
+    step#10  KernelLaunch  expr=0 route=Vector kernel=vector_kernel_0_do file=kernel0.cpp params=[vecABuf.device, vecBBuf.device, vecCBuf.device, kernelLength0, blockDim0, tileLength0, tileCount0] scalars=[] blockDim=blockDim0 tiling=- multicard=0 commonDecls=[#4] alloc=[#5] copyIn=[#6] copyOut=[#8] free=[#9] postLaunch=[]
+            buffer#0 name=vecA access=read dist=sharded halo=[0,0] resident=0 count=vecABuf.logicalElems bytes=vecABuf.bytes()
+            buffer#1 name=vecB access=read dist=sharded halo=[0,0] resident=0 count=vecBBuf.logicalElems bytes=vecBBuf.bytes()
+            buffer#2 name=vecC access=write dist=sharded halo=[0,0] resident=0 count=vecCBuf.logicalElems bytes=vecCBuf.bytes()
+    step#11  HostOutput  kind=TensorPrint target=vecC_tensor value= gen=    {
+        std::cout << "{";
+        for (long long dacppPrintI0_0 = 0; dacppPrintI0_0 < static_cast<long long>(vecC....
+    step#12  GeneratedCodeBlock  role=AclRuntimeFinalize label=vector.route.cleanup expr=-1 route=Vector code=#ifndef ASCENDC_CPU_DEBUG
+    dev.close();
+#endif
+
